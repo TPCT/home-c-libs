@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <termios.h>
+#include <malloc.h>
+typedef char* String;
 
 struct termios newTerminal, oldTerminal;
 
@@ -6,7 +10,6 @@ void initTerminal(char Echoing){
     newTerminal = oldTerminal;
     newTerminal.c_lflag &= ~ICANON;
     newTerminal.c_lflag &= Echoing ? ECHO : ~ECHO;
-    readdir
     tcsetattr(0, TCSANOW, &newTerminal);
 }
 
@@ -14,17 +17,29 @@ void resetTerminal(void){
     tcsetattr(0, TCSANOW, &oldTerminal);
 }
 
-char getch(void){
+char getCh(void){
     initTerminal(0);
     char c;
-    while((c = getchar()) != EOF){
-        if (c == (newTerminal.c_cc[VERASE])){
+    c = getchar();
+    resetTerminal();
+    return c;
+}
+
+String getPWD(unsigned long long passwordSize){
+    String data = (String) calloc(passwordSize, sizeof(char));
+    unsigned long long passwordCounter = 0;
+    unsigned character = 0;
+    while(passwordCounter < passwordSize &&
+        ((character = getCh()) != EOF) && character != '\n'){
+        if(character == newTerminal.c_cc[VERASE]){
             printf("\b \b");
+            fflush(stdin);
+            data[passwordCounter ? --passwordCounter : passwordCounter] = '\0';
             continue;
         }
+        data[passwordCounter++] = character;
         printf("*");
     }
     printf("\n");
-    resetTerminal();
-    return 0;
+    return data;
 }
