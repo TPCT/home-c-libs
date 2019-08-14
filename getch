@@ -1,0 +1,30 @@
+
+struct termios newTerminal, oldTerminal;
+
+void initTerminal(char Echoing){
+    tcgetattr(0, &oldTerminal);
+    newTerminal = oldTerminal;
+    newTerminal.c_lflag &= ~ICANON;
+    newTerminal.c_lflag &= Echoing ? ECHO : ~ECHO;
+    readdir
+    tcsetattr(0, TCSANOW, &newTerminal);
+}
+
+void resetTerminal(void){
+    tcsetattr(0, TCSANOW, &oldTerminal);
+}
+
+char getch(void){
+    initTerminal(0);
+    char c;
+    while((c = getchar()) != EOF){
+        if (c == (newTerminal.c_cc[VERASE])){
+            printf("\b \b");
+            continue;
+        }
+        printf("*");
+    }
+    printf("\n");
+    resetTerminal();
+    return 0;
+}
